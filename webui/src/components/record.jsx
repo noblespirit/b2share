@@ -99,6 +99,18 @@ const Record = React.createClass({
             this.setState({showB2NoteWindow: true})
     },
 
+    // ensures root schema v0 and v1 compatibility
+    renderLinks(fields, key) {
+        return fields.map(function(k) {
+            if (k.size && k.has(key)) {
+                var v = k.get(key);
+                return <Link to={{pathname:'/records', query:{q:v}}} key={v}>{v}</Link>
+            } else {
+                return <Link to={{pathname:'/records', query:{q:k}}} key={k}>{k}</Link>
+            }
+        });
+    },
+
     renderFixedFields(record, community) {
         function renderTitle(title, i) {
             return i === 0 ?
@@ -195,14 +207,14 @@ const Record = React.createClass({
                         { !disciplines ? false :
                             <p className="discipline">
                                 <span style={{fontWeight:'bold'}}>Disciplines: </span>
-                                <ImplodedList data={disciplines.map(k => <Link to={{pathname:'/records', query:{q:k}}} key={k}>{k}</Link>)}/>;
+                                <ImplodedList data={this.renderLinks(disciplines, 'discipline_name')} />
                             </p>
                         }
 
                         { !keywords ? false :
                             <p className="keywords">
                                 <span style={{fontWeight:'bold'}}>Keywords: </span>
-                                <ImplodedList data={keywords.map(k => <Link to={{pathname:'/records', query:{q:k}}} key={k}>{k}</Link>)}/>;
+                                <ImplodedList data={this.renderLinks(keywords, 'keyword')}/>;
                             </p>
                         }
 
@@ -313,11 +325,10 @@ const Record = React.createClass({
 
         if (id == 'languages' || id == 'language') {
             const languages = serverCache.getLanguages();
-            if (languages && value.size) {
-                value = value.map(function(v) {
-                    const lang = languages.find(l => l.id == v).name;
-                    return lang ? `${lang} [${v}]` : value;
-                });
+            if (value.size) {
+                if (languages) {
+                    value = value.map(v => v.set('language', languages.find(l => l.id == v.get('language')).name || v.get('language')));
+                }
                 inner = (
                     <ul className="list-unstyled">
                         { value.map((v,i) => this.renderField(`#${i}`, schema.get('items'), v)) }
@@ -325,11 +336,10 @@ const Record = React.createClass({
                 );
             } else {
                 if (languages) {
-                    const lang = languages.find(l => l.id == value).name
-                    value = lang ? `${lang} [${value}]` : value;
+                    value = (inner = languages.find(l => l.id == value)) ? inner.name : value;
                 }
                 // maintain root schema v0 compatibility
-                inner = <span>{renderScalar(schema, value)}</span>;
+                inner = <span>{ renderScalar(schema, value) }</span>;
             }
         } else if (type === 'array') {
             inner = (

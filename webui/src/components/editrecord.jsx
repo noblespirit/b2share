@@ -476,7 +476,7 @@ const EditRecord = React.createClass({
                     </div>
                 </div>
                 <div className="col-sm-12 v-spacer"><input type="hidden" /></div>
-                { path.length != 1 ? false :
+                { path.length == 1 &&
                 <div className="col-sm-offset-3 col-sm-9">
                     <ReplaceAnimate>
                         <div className="field-description">
@@ -727,7 +727,7 @@ const EditRecord = React.createClass({
         const afterPatch = (record) => {
             if (this.props.isDraft && !this.isForPublication()) {
                 this.props.refreshCache();
-                // TODO(edima): when a draft is publised, clean the state of
+                // TODO(edima): when a draft is published, clean the state of
                 // records in versioned chain, to trigger a refetch of
                 // versioning data
                 this.setState({dirty: false, waitingForServer: false});
@@ -826,8 +826,7 @@ const EditRecord = React.createClass({
                         <h2 className="name">
                             <span style={{color:'#aaa'}}>{editTitle}</span>
                             {this.state.record.get('title')}
-                        { this.props.isDraft
-                          ?
+                        { this.props.isDraft &&
                             <div className="pull-right">
                                 <form className="form-inline" onSubmit={this.removeDraft}>
                                     <button className="btn btn-default" type="submit">
@@ -835,7 +834,6 @@ const EditRecord = React.createClass({
                                     </button>
                                 </form>
                             </div>
-                          : false
                         }
                         </h2>
                     </div>
@@ -847,13 +845,13 @@ const EditRecord = React.createClass({
                 </div>
                 <div className="row">
                     <div className="col-xs-12">
-                        { this.props.isDraft ? this.renderFileBlock() : false }
+                        { this.props.isDraft && this.renderFileBlock() }
                     </div>
                     <div className="col-xs-12">
                         <form className="form-horizontal" onSubmit={this.updateRecord}>
                             { this.renderFieldBlock(null, rootSchema) }
 
-                            { !blockSchemas ? false :
+                            { blockSchemas &&
                                 blockSchemas.map(([id, blockSchema]) =>
                                     this.renderFieldBlock(id, (blockSchema||Map()).get('json_schema'))) }
                         </form>
